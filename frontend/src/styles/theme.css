@@ -1,0 +1,43 @@
+/* === Custom Animations === */
+@keyframes fade-rise {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-rise {
+    animation: fade-rise 0.8s ease-out forwards;
+}
+
+.animate-fade-rise-delay {
+    animation: fade-rise 0.8s ease-out 0.2s forwards;
+}
+
+.animate-fade-rise-delay-2 {
+    animation: fade-rise 0.8s ease-out 0.4s forwards;
+}
+
+/* === Color Tokens === */
+:root {
+    --color-background: #FFFFFF;
+    --color-primary: #000000;
+    --color-secondary: #6F6F6F;
+}
+
+.bg-background {
+    background-color: var(--color-background);
+}
+
+.text-primary {
+    color: var(--color-primary);
+}
+
+.text-secondary {
+    color: var(--color-secondary);
+}

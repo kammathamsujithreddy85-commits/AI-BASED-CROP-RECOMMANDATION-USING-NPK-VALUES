@@ -1,0 +1,11 @@
+{
+    "emmet.includeLanguages": {
+        "jinja2": "html"
+    },
+    "files.associations": {
+        "*.html": "jinja2"
+    },
+    "html.format.enable": false,
+    "html.validate.scripts": false,
+    "html.validate.styles": false
+}

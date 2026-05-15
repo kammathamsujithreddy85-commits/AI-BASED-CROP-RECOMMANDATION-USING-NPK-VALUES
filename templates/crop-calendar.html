@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crop Calendar | CropAI</title>
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/2913/2913520.png" type="image/png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#1a5276">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-touch-fullscreen" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <style>
+        /* === CSS VARIABLES === */
+        :root {
+            --primary-start: #1a5276;
+            --primary-end: #2e86de;
+            --accent-start: #27ae60;
+            --accent-end: #2ecc71;
+            --warning-start: #f39c12;
+            --warning-end: #f1c40f;
+            --danger-start: #e74c3c;
+            --danger-end: #c0392b;
+            --dark: #1a1a2e;
+            --darker: #16213e;
+            --light: #f8f9fa;
+            --gray: #6c757d;
+            --success: #28a745;
+            --shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            --shadow-hover: 0 20px 60px rgba(0, 0, 0, 0.25);
+            --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            --border-radius: 16px;
+            --border-radius-lg: 24px;
+        }
+
+        /* === RESET & BASE === */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        @keyframes gradientShift { 0% { background-position: 0% 50% } 50% { background-position: 100% 50% } 100% { background-position: 0% 50% } }
+        @keyframes float { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-10px) } }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(46, 134, 222, 0.4) } 70% { box-shadow: 0 0 0 15px rgba(46, 134, 222, 0) } 100% { box-shadow: 0 0 0 0 rgba(46, 134, 222, 0) } }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(30px) } to { opacity: 1; transform: translateY(0) } }
+        @keyframes cardPop { 0% { transform: scale(0.95); opacity: 0 } 100% { transform: scale(1); opacity: 1 } }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: transparent !important;
+            line-height: 1.6;
+            color: var(--dark);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* === BACKGROUND SLIDESHOW === */
+        .background-slideshow {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: -9999;
+            pointer-events: none;
+        }
+        .background-slide {
+            position: absolute;
+            width: 100%; height: 100%;
+            background-size: cover !important;
+            background-position: center !important;
+            opacity: 0;
+            transition: opacity 2s ease-in-out;
+        }
+        .background-slide.active { opacity: 0.5; }
+
+        /* === PARTICLES === */
+        .particles {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: -9998;
+            overflow: hidden;
+            pointer-events: none;
+        }
+        .particle {
+            position: absolute;
+            width: 4px; height: 4px;
+            background: rgba(46, 134, 222, 0.3);
+            border-radius: 50%;
+            animation: float 6s infinite ease-in-out;
+            opacity: 0;
+        }
+        .particle:nth-child(1) { left: 10%; animation-delay: 0s; animation-duration: 8s }
+        .particle:nth-child(2) { left: 20%; animation-delay: 1s; animation-duration: 10s }
+        .particle:nth-child(3) { left: 30%; animation-delay: 2s; animation-duration: 7s }
+        .particle:nth-child(4) { left: 40%; animation-delay: 0.5s; animation-duration: 9s }
+        .particle:nth-child(5) { left: 50%; animation-delay: 1.5s; animation-duration: 11s }
+        .particle:nth-child(6) { left: 60%; animation-delay: 2.5s; animation-duration: 8s }
+        .particle:nth-child(7) { left: 70%; animation-delay: 0.8s; animation-duration: 10s }
+        .particle:nth-child(8) { left: 80%; animation-delay: 1.8s; animation-duration: 9s }
+        .particle:nth-child(9) { left: 90%; animation-delay: 2.2s; animation-duration: 7s }
+
+        /* === HEADER (Solid Blue - Like Chat.html) === */
+        .header {
+            background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
+            color: white;
+            padding: 0;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            z-index: 100;
+        }
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-start), var(--warning-start), var(--accent-end));
+            animation: gradientShift 8s ease infinite;
+        }
+        .header-top {
+            background: rgba(26, 26, 46, 0.98);
+            padding: 10px 0;
+            font-size: 13px;
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+        }
+        .header-top .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .emblem-section { padding: 20px 0; }
+        .emblem-section .container {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+        .emblem {
+            width: 60px; height: 60px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.05));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: float 4s ease-in-out infinite;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+        .emblem svg {
+            width: 35px; height: 35px;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+        .header-text h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            letter-spacing: -0.5px;
+        }
+        .header-text p {
+            font-size: 15px;
+            opacity: 0.95;
+            font-weight: 300;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* === NAVIGATION (Solid Dark - Like Chat.html) === */
+        .nav {
+            background: rgba(26, 26, 46, 0.98);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            padding: 0;
+            position: sticky;
+            top: 0;
+            z-index: 99;
+        }
+        .nav ul {
+            list-style: none;
+            display: flex;
+            gap: 2px;
+            padding: 0 24px;
+        }
+        .nav a {
+            display: block;
+            padding: 16px 22px;
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: var(--transition);
+            position: relative;
+            border-radius: 8px 8px 0 0;
+        }
+        .nav a::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 50%;
+            width: 0; height: 3px;
+            background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+            transition: var(--transition);
+            transform: translateX(-50%);
+            border-radius: 3px;
+        }
+        .nav a:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .nav a:hover::after { width: 70%; }
+        .nav a.active {
+            color: white;
+            background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+            font-weight: 600;
+        }
+        .nav a.active::after { display: none; }
+
+        /* === MAIN CONTENT === */
+        .main-content {
+            padding: 50px 0;
+            animation: slideIn 0.6s ease-out;
+        }
+
+        .alert-banner {
+            background: linear-gradient(135deg, rgba(243, 156, 18, 0.15), rgba(241, 196, 15, 0.1));
+            border: 1px solid rgba(243, 156, 18, 0.3);
+            border-left: 4px solid var(--warning-start);
+            padding: 14px 24px;
+            margin-bottom: 30px;
+            font-size: 14px;
+            color: #7d5a00;
+            border-radius: 0 var(--border-radius) var(--border-radius) 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideIn 0.5s ease-out;
+        }
+        .alert-banner i {
+            font-size: 18px;
+            animation: pulse 2s infinite;
+        }
+
+        /* === GLASSMORPHISM CARDS (Matches Chat.html) === */
+        .page-title, .info-box, .month-card, .crop-item, .season-btn,
+        .alert-banner, .footer {
+            background: rgba(255, 255, 255, 0.25) !important;
+            backdrop-filter: blur(20px) saturate(180%) !important;
+            -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+            border: 1px solid rgba(255, 255, 255, 0.4) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+            border-radius: 16px;
+        }
+
+        .page-title {
+            padding: 35px;
+            margin-bottom: 35px;
+            border-left: 5px solid var(--primary-end);
+            animation: slideIn 0.5s ease-out;
+        }
+        .page-title h1 {
+            color: var(--primary-start);
+            font-size: 34px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .page-title p { color: var(--gray); font-size: 16px; }
+        .page-title .subtitle {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, rgba(46,134,222,0.1), rgba(46,134,222,0.05));
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--primary-start);
+            margin-top: 10px;
+            font-weight: 500;
+        }
+
+        /* === SEASON FILTER === */
+        .season-filter {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            animation: slideIn 0.5s ease-out 0.1s both;
+        }
+        .season-btn {
+            padding: 10px 20px;
+            border: 2px solid var(--primary-end);
+            color: var(--primary-start);
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.7) !important;
+            backdrop-filter: blur(10px);
+        }
+        .season-btn.active, .season-btn:hover {
+            background: linear-gradient(135deg, var(--primary-start), var(--primary-end)) !important;
+            color: white !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(46,134,222,0.3);
+        }
+        .season-btn.kharif { border-color: var(--accent-start); color: var(--accent-start); }
+        .season-btn.kharif.active, .season-btn.kharif:hover {
+            background: linear-gradient(135deg, var(--accent-start), var(--accent-end)) !important;
+            box-shadow: 0 4px 12px rgba(39,174,96,0.3);
+        }
+        .season-btn.rabi { border-color: var(--warning-start); color: var(--warning-start); }
+        .season-btn.rabi.active, .season-btn.rabi:hover {
+            background: linear-gradient(135deg, var(--warning-start), var(--warning-end)) !important;
+            box-shadow: 0 4px 12px rgba(243,156,18,0.3);
+            color: #664d03 !important;
+        }
+
+        /* === CALENDAR GRID & MONTH CARDS === */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        .month-card {
+            overflow: hidden;
+            transition: var(--transition);
+            animation: cardPop 0.5s ease-out both;
+            position: relative;
+        }
+        .month-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-hover);
+        }
+        .month-card.kharif { border-top: 4px solid var(--accent-start); }
+        .month-card.rabi { border-top: 4px solid var(--warning-start); }
+        .month-card.summer { border-top: 4px solid var(--danger-start); }
+        .month-card::before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0;
+            width: 100px; height: 100px;
+            background: radial-gradient(circle, rgba(46,134,222,0.08) 0%, transparent 70%);
+            border-radius: 0 0 0 100%;
+            pointer-events: none;
+        }
+
+        .month-header {
+            background: linear-gradient(135deg, 
+                rgba(26, 82, 118, 0.95), 
+                rgba(46, 134, 222, 0.95)) !important;
+            backdrop-filter: blur(10px) !important;
+            color: white !important;
+            padding: 22px 25px;
+            text-align: center;
+            position: relative;
+        }
+        .month-card.kharif .month-header { background: linear-gradient(135deg, var(--accent-start), var(--accent-end)) !important; }
+        .month-card.rabi .month-header { background: linear-gradient(135deg, var(--warning-start), var(--warning-end)) !important; }
+        .month-card.summer .month-header { background: linear-gradient(135deg, var(--danger-start), var(--danger-end)) !important; }
+        .month-header h3 { font-size: 24px; margin-bottom: 6px; font-weight: 700; }
+        .month-header .season { font-size: 13px; opacity: 0.95; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .month-header .month-number {
+            position: absolute;
+            top: 15px; right: 20px;
+            font-size: 40px;
+            font-weight: 800;
+            opacity: 0.15;
+            line-height: 1;
+        }
+
+        .month-body { padding: 22px; }
+
+        .crop-item {
+            padding: 14px 16px;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, rgba(46,134,222,0.05), rgba(46,134,222,0.02));
+            border-left: 4px solid var(--primary-end);
+            border-radius: 0 10px 10px 0;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+        .crop-item:hover {
+            background: linear-gradient(135deg, rgba(46,134,222,0.12), rgba(46,134,222,0.06));
+            transform: translateX(4px);
+            border-left-width: 5px;
+        }
+        .month-card.kharif .crop-item {
+            border-left-color: var(--accent-start);
+            background: linear-gradient(135deg, rgba(39,174,96,0.08), rgba(39,174,96,0.03));
+        }
+        .month-card.kharif .crop-item:hover {
+            background: linear-gradient(135deg, rgba(39,174,96,0.15), rgba(39,174,96,0.08));
+        }
+        .month-card.rabi .crop-item {
+            border-left-color: var(--warning-start);
+            background: linear-gradient(135deg, rgba(243,156,18,0.08), rgba(243,156,18,0.03));
+        }
+        .month-card.rabi .crop-item:hover {
+            background: linear-gradient(135deg, rgba(243,156,18,0.15), rgba(243,156,18,0.08));
+        }
+        .crop-item h4 {
+            color: var(--primary-start);
+            font-size: 16px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+        .crop-item p { font-size: 13px; color: var(--gray); margin-bottom: 4px; }
+        .crop-item .activity {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 12px;
+            background: var(--success);
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: 20px;
+            margin-top: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* === INFO BOXES (Tips & Schemes) === */
+        .info-box {
+            padding: 30px;
+            margin-bottom: 30px;
+            animation: slideIn 0.5s ease-out both;
+        }
+        .info-box:nth-child(2) { animation-delay: 0.1s }
+        .info-box:nth-child(3) { animation-delay: 0.2s }
+        .info-box h2 {
+            color: var(--primary-start);
+            margin-bottom: 22px;
+            padding-bottom: 14px;
+            border-bottom: 2px solid rgba(46,134,222,0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 22px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 22px;
+        }
+        .info-item {
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(46,134,222,0.06), rgba(46,134,222,0.02));
+            border-left: 4px solid var(--primary-end);
+            border-radius: 0 12px 12px 0;
+            transition: var(--transition);
+        }
+        .info-item:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+        .info-item h4 {
+            color: var(--primary-start);
+            margin-bottom: 10px;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .info-item p { color: var(--gray); font-size: 14px; line-height: 1.7; }
+        .info-item p strong { color: var(--dark); font-weight: 600; }
+
+        /* === MARKET PRICE CHECKER (Embedded) === */
+        .price-checker-box {
+            background: rgba(255, 255, 255, 0.25) !important;
+            backdrop-filter: blur(20px) saturate(180%) !important;
+            border: 1px solid rgba(255, 255, 255, 0.4) !important;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        .search-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .form-group { display: flex; flex-direction: column; }
+        label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        select {
+            padding: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 10px;
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.7) !important;
+            backdrop-filter: blur(10px);
+            transition: var(--transition);
+        }
+        select:focus {
+            outline: none;
+            border-color: var(--primary-end);
+            background: rgba(255, 255, 255, 0.9) !important;
+            box-shadow: 0 0 0 4px rgba(46, 134, 222, 0.15);
+        }
+        .price-result {
+            display: none;
+            padding: 25px;
+            background: linear-gradient(135deg, rgba(46,134,222,0.08), rgba(46,134,222,0.03));
+            border-radius: 12px;
+            border-left: 5px solid var(--primary-end);
+            animation: slideIn 0.5s ease-out;
+        }
+        .price-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        .price-card {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+        .price-label {
+            font-size: 12px;
+            color: var(--gray);
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .price-value {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--success);
+        }
+        .price-range {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary-start);
+        }
+        .source-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            background: var(--success);
+            color: white;
+        }
+        .source-badge.simulated { background: var(--warning-start); }
+        #loadingPrice {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        #loadingPrice i {
+            font-size: 40px;
+            color: var(--primary-end);
+            margin-bottom: 15px;
+        }
+
+        /* === BUTTONS === */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 4px 15px rgba(46, 134, 222, 0.4);
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(46, 134, 222, 0.6);
+        }
+
+        /* === FOOTER === */
+        .footer {
+            background: linear-gradient(135deg, var(--darker), var(--dark));
+            color: rgba(255, 255, 255, 0.9);
+            padding: 50px 0 30px;
+            margin-top: 60px;
+            position: relative;
+        }
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-start), var(--warning-start), var(--accent-end));
+            animation: gradientShift 8s ease infinite;
+        }
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 40px;
+        }
+        .footer h3 {
+            font-size: 17px;
+            margin-bottom: 20px;
+            color: var(--accent-end);
+            position: relative;
+            padding-bottom: 12px;
+        }
+        .footer h3::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0;
+            width: 40px; height: 2px;
+            background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+            border-radius: 2px;
+        }
+        .footer p, .footer li {
+            font-size: 14px;
+            opacity: 0.9;
+            line-height: 2;
+        }
+        .footer ul { list-style: none; }
+        .footer a {
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .footer a:hover {
+            color: var(--accent-end);
+            transform: translateX(3px);
+        }
+        .footer-bottom {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 18px 0;
+            text-align: center;
+            font-size: 13px;
+            opacity: 0.85;
+            margin-top: 35px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* === TEXT READABILITY ON GLASS === */
+        .page-title h1, .page-title p, .page-title .subtitle,
+        .month-header h3, .month-header .season,
+        .crop-item h4, .crop-item p, .crop-item .activity,
+        .info-box h2, .info-item h4, .info-item p,
+        .price-label, .price-value, .price-range,
+        label {
+            color: #1a1a2e !important;
+        }
+        .month-header, .month-header h3, .month-header .season {
+            color: white !important;
+        }
+
+        /* === RESPONSIVE === */
+        @media(max-width: 992px) {
+            .footer-grid {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            .footer h3::after {
+                left: 50%;
+                transform: translateX(-50%);
+            }
+        }
+        @media(max-width: 768px) {
+            .nav ul {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr !important;
+                gap: 2px !important;
+                padding: 0 !important;
+            }
+            .nav a {
+                padding: 12px 5px !important;
+                font-size: 11px !important;
+                text-align: center !important;
+                border-radius: 0 !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                line-height: 1.4 !important;
+            }
+            .nav a i {
+                font-size: 16px !important;
+                margin-bottom: 4px !important;
+            }
+            .nav a.active {
+                background: linear-gradient(135deg, var(--accent-start), var(--accent-end)) !important;
+                color: white !important;
+            }
+            .season-filter {
+                flex-direction: column !important;
+                gap: 8px !important;
+            }
+            .season-btn {
+                width: 100% !important;
+                justify-content: center !important;
+            }
+            .calendar-grid {
+                grid-template-columns: 1fr !important;
+                gap: 20px !important;
+            }
+            .info-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .month-card {
+                margin-bottom: 15px !important;
+            }
+            .search-grid {
+                grid-template-columns: 1fr !important;
+                gap: 15px !important;
+            }
+            .search-grid > div:last-child {
+                width: 100% !important;
+            }
+            .search-grid .btn {
+                width: 100% !important;
+                padding: 14px 20px !important;
+            }
+            .price-grid {
+                grid-template-columns: 1fr 1fr !important;
+                gap: 15px !important;
+            }
+            .price-card {
+                padding: 15px !important;
+            }
+            .price-value {
+                font-size: 24px !important;
+            }
+            .page-title {
+                font-size: 24px !important;
+                padding: 25px !important;
+            }
+            .page-title h1 {
+                font-size: 24px !important;
+            }
+        }
+        @media(max-width: 480px) {
+            .price-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        /* === ACCESSIBILITY === */
+        ::selection { background: rgba(46, 134, 222, 0.2); color: var(--primary-start); }
+        input:focus-visible, button:focus-visible, a:focus-visible, select:focus-visible {
+            outline: 2px solid var(--accent-end);
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Dynamic Background Slideshow -->
+    <div class="background-slideshow">
+        <div class="background-slide active" style="background-image: url('https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=1920&q=80');"></div>
+        <div class="background-slide" style="background-image: url('https://images.unsplash.com/photo-1605000797499-95a51c5269ae?w=1920&q=80');"></div>
+        <div class="background-slide" style="background-image: url('https://images.unsplash.com/photo-1592982537447-7440770cbfc9?w=1920&q=80');"></div>
+        <div class="background-slide" style="background-image: url('https://images.unsplash.com/photo-1586771107445-d3ca888129ff?w=1920&q=80');"></div>
+        <div class="background-slide" style="background-image: url('https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=1920&q=80');"></div>
+    </div>
+    
+    <!-- Animated Particles -->
+    <div class="particles">
+        <div class="particle"></div><div class="particle"></div><div class="particle"></div>
+        <div class="particle"></div><div class="particle"></div><div class="particle"></div>
+        <div class="particle"></div><div class="particle"></div><div class="particle"></div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-top">
+            <div class="container">
+                <span><i class="fas fa-landmark"></i> Government of India | Ministry of Agriculture & Farmers Welfare</span>
+                <span><i class="fas fa-headset"></i> Helpline: <strong>1800-180-1551</strong></span>
+            </div>
+        </div>
+        <div class="emblem-section">
+            <div class="container">
+                <div class="emblem">
+                    <svg viewBox="0 0 100 100" fill="white">
+                        <circle cx="50" cy="30" r="15"/>
+                        <path d="M50 45 L50 70 M35 55 L50 45 L65 55 M25 65 L50 70 L75 65" 
+                              stroke="white" stroke-width="3" fill="none" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div class="header-text">
+                    <h1><i class="fas fa-calendar-alt"></i> Crop Calendar</h1>
+                    <p>Month-wise Crop Planning Guide for Indian Farmers</p>
+                </div>
+            </div>
+        </div>
+        <nav class="nav">
+            <div class="container">
+                <ul>
+                    <li><a href="/"><i class="fas fa-home"></i> Home</a></li>
+                    <li><a href="/chat"><i class="fas fa-robot"></i> AI Assistant</a></li>
+                    <li><a href="/crop-calendar" class="active"><i class="fas fa-calendar-alt"></i> Crop Calendar</a></li>
+                    <li><a href="/market-prices"><i class="fas fa-chart-line"></i> Market Prices</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <div class="alert-banner">
+                <i class="fas fa-info-circle"></i>
+                <span><strong>Tip:</strong> Click on any crop card to view detailed farming guidelines and best practices!</span>
+            </div>
+
+            <div class="page-title">
+                <h1><i class="fas fa-seedling"></i> Annual Crop Calendar</h1>
+                <p>Plan your farming activities month-wise for maximum yield and profitability</p>
+                <div class="subtitle"><i class="fas fa-sync-alt"></i> Updated for <strong>{{ agri_year }}</strong> Agricultural Year</div>
+            </div>
+
+            <!-- Season Filter -->
+            <div class="season-filter">
+                <button class="season-btn active" onclick="filterSeason('all', event)"><i class="fas fa-globe"></i> All Seasons</button>
+                <button class="season-btn kharif" onclick="filterSeason('kharif', event)"><i class="fas fa-cloud-rain"></i> Kharif (Jun-Oct)</button>
+                <button class="season-btn rabi" onclick="filterSeason('rabi', event)"><i class="fas fa-snowflake"></i> Rabi (Nov-Mar)</button>
+                <button class="season-btn summer" onclick="filterSeason('summer', event)"><i class="fas fa-sun"></i> Summer (Apr-May)</button>
+            </div>
+
+            <!-- Market Price Checker (Embedded) -->
+            <div class="info-box" style="animation: slideIn 0.5s ease-out 0.3s both;">
+                <h2><i class="fas fa-coins"></i> Live Market Prices</h2>
+                <p style="color: var(--gray); margin-bottom: 20px;">Check current market prices for crops across India</p>
+                <div class="search-grid">
+                    <div class="form-group">
+                        <label><i class="fas fa-seedling"></i> Select Crop</label>
+                        <select id="cropSelect">
+                            <option value="">-- Choose a Crop --</option>
+                            <option value="rice">🌾 Rice (Paddy)</option>
+                            <option value="wheat">🌾 Wheat</option>
+                            <option value="maize">🌽 Maize</option>
+                            <option value="cotton">🌱 Cotton</option>
+                            <option value="potato">🥔 Potato</option>
+                            <option value="onion">🧅 Onion</option>
+                            <option value="tomato">🍅 Tomato</option>
+                            <option value="sugarcane">🎋 Sugarcane</option>
+                            <option value="groundnut">🥜 Groundnut</option>
+                            <option value="soybean">🫘 Soybean</option>
+                            <option value="mustard">🌼 Mustard</option>
+                            <option value="chickpea">🫘 Chickpea (Gram)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-map-marker-alt"></i> State/Region</label>
+                        <select id="stateSelect">
+                            <option value="all">All India</option>
+                            <option value="maharashtra">Maharashtra</option>
+                            <option value="karnataka">Karnataka</option>
+                            <option value="tamilnadu">Tamil Nadu</option>
+                            <option value="andhra">Andhra Pradesh</option>
+                            <option value="telangana">Telangana</option>
+                            <option value="gujarat">Gujarat</option>
+                            <option value="rajasthan">Rajasthan</option>
+                            <option value="up">Uttar Pradesh</option>
+                            <option value="mp">Madhya Pradesh</option>
+                            <option value="punjab">Punjab</option>
+                            <option value="haryana">Haryana</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; align-items: flex-end;">
+                        <button onclick="checkMarketPrice()" class="btn"><i class="fas fa-search"></i> Check Price</button>
+                    </div>
+                </div>
+                <div id="priceResult" class="price-result">
+                    <div class="price-grid">
+                        <div class="price-card">
+                            <div class="price-label"><i class="fas fa-tag"></i> Current Price</div>
+                            <div class="price-value" id="priceValue">₹--</div>
+                            <div style="font-size: 12px; color: var(--gray);">per quintal</div>
+                        </div>
+                        <div class="price-card">
+                            <div class="price-label"><i class="fas fa-chart-line"></i> Price Range</div>
+                            <div class="price-range">₹<span id="minPrice">--</span> - ₹<span id="maxPrice">--</span></div>
+                        </div>
+                        <div class="price-card">
+                            <div class="price-label"><i class="fas fa-map-marker-alt"></i> Market Location</div>
+                            <div style="font-size: 16px; font-weight: 600; color: var(--primary-start);">
+                                <span id="marketName">--</span>
+                            </div>
+                            <div style="font-size: 13px; color: var(--gray);"><span id="stateName">--</span></div>
+                        </div>
+                        <div class="price-card">
+                            <div class="price-label"><i class="fas fa-database"></i> Data Source</div>
+                            <span id="dataSource" class="source-badge">Live</span>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed rgba(0,0,0,0.1); font-size: 12px; color: var(--gray);">
+                        <i class="fas fa-info-circle"></i> <span id="lastUpdated">Last updated: Just now</span>
+                    </div>
+                </div>
+                <div id="loadingPrice">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <div style="color: var(--gray);">Fetching latest market prices...</div>
+                </div>
+            </div>
+
+            <!-- Calendar Grid -->
+            <div class="calendar-grid">
+                <!-- June -->
+                <div class="month-card kharif" data-season="kharif">
+                    <div class="month-header"><span class="month-number">06</span><h3>June</h3><div class="season"><i class="fas fa-cloud-rain"></i> Kharif Season - Monsoon Begins</div></div>
+                    <div class="month-body">
+                        <div class="crop-item" onclick="showCropDetails('rice')"><h4><i class="fas fa-seedling"></i> Rice (Paddy)</h4><p><strong>Sowing:</strong> Prepare nursery beds</p><p><strong>Activity:</strong> Land preparation & puddling</p><span class="activity"><i class="fas fa-play-circle"></i> Sowing Time</span></div>
+                        <div class="crop-item" onclick="showCropDetails('maize')"><h4><i class="fas fa-seedling"></i> Maize</h4><p><strong>Sowing:</strong> With onset of monsoon rains</p><span class="activity"><i class="fas fa-play-circle"></i> Sowing Time</span></div>
+                        <div class="crop-item" onclick="showCropDetails('cotton')"><h4><i class="fas fa-seedling"></i> Cotton</h4><p><strong>Sowing:</strong> Early June for best results</p><span class="activity"><i class="fas fa-play-circle"></i> Sowing Time</span></div>
+                    </div>
+                </div>
+                <!-- July -->
+                <div class="month-card kharif" data-season="kharif">
+                    <div class="month-header"><span class="month-number">07</span><h3>July</h3><div class="season"><i class="fas fa-cloud-showers-heavy"></i> Kharif Season - Peak Monsoon</div></div>
+                    <div class="month-body">
+                        <div class="crop-item" onclick="showCropDetails('rice')"><h4><i class="fas fa-seedling"></i> Rice</h4><p><strong>Activity:</strong> Transplanting seedlings</p><p><strong>Care:</strong> Maintain 2-5cm water level</p><span class="activity"><i class="fas fa-exchange-alt"></i> Transplanting</span></div>
+                        <div class="crop-item" onclick="showCropDetails('groundnut')"><h4><i class="fas fa-seedling"></i> Groundnut</h4><p><strong>Sowing:</strong> Continue sowing operations</p><span class="activity"><i class="fas fa-play-circle"></i> Sowing</span></div>
+                        <div class="crop-item" onclick="showCropDetails('soybean')"><h4><i class="fas fa-seedling"></i> Soybean</h4><p><strong>Sowing:</strong> First fortnight ideal</p><span class="activity"><i class="fas fa-play-circle"></i> Sowing Time</span></div>
+                    </div>
+                </div>
+                <!-- August -->
+                <div class="month-card kharif" data-season="kharif">
+                    <div class="month-header"><span class="month-number">08</span><h3>August</h3><div class="season"><i class="fas fa-leaf"></i> Kharif Season - Active Growth</div></div>
+                    <div class="month-body">
+                        <div class="crop-item" onclick="showCropDetails('rice')"><h4><i class="fas fa-seedling"></i> Rice</h4><p><strong>Activity:</strong> Top dressing with urea</p><p><strong>Pest Control:</strong> Monitor for stem borer</p><span class="activity"><i class="fas fa-prescribe-bottle"></i> Fertilizer</span></div>
+                        <div class="crop-item" onclick="showCropDetails('maize')"><h4><i class="fas fa-seedling"></i> Maize</h4><p><strong>Activity:</strong> Weeding and earthing up</p><span class="activity"><i class="fas fa-tools"></i> Interculture</span></div>
+                        <div class="crop-item" onclick="showCropDetails('sugarcane')"><h4><i class="fas fa-seedling"></i> Sugarcane</h4><p><strong>Activity:</strong> Earthing up for support</p><span class="activity"><i class="fas fa-cogs"></i> Maintenance</span></div>
+                    </div>
+                </div>
+                <!-- September -->
+                <div class="month-card kharif" data-season="kharif">
+                    <div class="month-header"><span class="month-number">09</span><h3>September</h3><div class="season"><i class="fas fa-wheat"></i> Kharif Season - Maturing Stage</div></div>
+                    <div class="month-body">
+                        <div class="crop-item" onclick="showCropDetails('rice')"><h4><i class="fas fa-seedling"></i> Rice (Early)</h4><p><strong>Activity:</strong> Harvesting early varieties</p><span class="activity"><i class="fas fa-harvest"></i> Harvesting</span></div>
+                        <div class="crop-item" onclick="showCropDetails('cotton')"><h4><i class="fas fa-seedling"></i> Cotton</h4><p><strong>Activity:</strong> First picking begins</p><span class="activity"><i class="fas fa-harvest"></i> Harvesting</span></div>
+                        <div class="crop-item" onclick="showCropDetails('groundnut')"><h4><i class="fas fa-seedling"></i> Groundnut</h4><p><strong>Activity:</strong> Pod development stage</p><span class="activity"><i class="fas fa-seedling"></i> Growth Stage</span></div>
+                    </div>
+                </div>
+                <!-- October -->
+                <div class="month-card kharif" data-season="kharif">
+                    <div class="month-header"><span class="month-number">10</span><h3>October</h3><div class="season"><i class="fas fa-cloud-sun"></i> Post-Monsoon / Rabi Prep</div></div>
+                    <div class="month-body">
+                        <div class="crop-item" onclick="showCropDetails('rice')"><h4><i class="fas fa-seedling"></i> Rice (Late)</h4><p><strong>Activity:</strong> Main harvesting season</p><span class="activity"><i class="fas fa-harvest"></i> Harvesting</span></div>
+                        <div class="crop-item" onclick="showCropDetails('wheat')"><h4><i class="fas fa-seedling"></i> Wheat</h4><p><strong>Sowing:</strong> Last week (in some regions)</p><span class="activity"><i class="fas fa-clock"></i> Early Sowing</span></div>
+                        <div class="crop-item" onclick="showCropDetails('vegetables')"><h4><i class="fas fa-seedling"></i> Vegetables</h4><p><strong>Sowing:</strong> Tomato, Cabbage, Cauliflower</p><span class="activity"><i class="fas fa-seedling"></i> Nursery</span></div>
+                    </div>
+                </div>
+                <!-- November -->
+                <div class="month-card rabi" data-season="rabi">
+                    <div class="month-header"><span class="month-number">11</span><h3>November</h3><div class="season"><i class="fas fa-snowflake"></i> Rabi Season Begins</div></div>
+                    <div class="month-body">
+                        <div class="crop-item" onclick="showCropDetails('wheat')"><h4><i class="fas fa-seedling"></i> Wheat</h4><p><strong>Sowing:</strong> Optimal time begins</p><p><strong>Tip:</strong> Use certified seeds for best yield</p><span class="activity"><i class="fas fa-play-circle"></i> Sowing Time</span></div>
+                        <div class="crop-item" onclick="showCropDetails('mustard')"><h4><i class="fas fa-seedling"></i> Mustard</h4><p><strong>Sowing:</strong> First fortnight ideal</p><span class="activity"><i class="fas fa-play-circle"></i> Sowing</span></div>
+                        <div class="crop-item" onclick="showCropDetails('chickpea')"><h4><i class="fas fa-seedling"></i> Chickpea (Gram)</h4><p><strong>Sowing:</strong> Mid-November recommended</p><span class="activity"><i class="fas fa-play-circle"></i> Sowing Time</span></div>
+                    </div>
+                </div>
+                <!-- December -->
+                <div class="month-card rabi" data-season="rabi">
+                    <div class="month-header"><span class="month-number">12</span><h3>December</h3><div class="season"><i class="fas fa-icicles"></i> Rabi Season - Winter</div></div>
+                    <div class="month-body">
+                        <div class="crop-item" onclick="showCropDetails('wheat')"><h4><i class="fas fa-seedling"></i> Wheat</h4><p><strong>Activity:</strong> First irrigation (Crown root stage)</p><span class="activity"><i class="fas fa-tint"></i> Irrigation</span></div>
+                        <div class="crop-item" onclick="showCropDetails('potato')"><h4><i class="fas fa-seedling"></i> Potato</h4><p><strong>Activity:</strong> Earthing up for tuber development</p><span class="activity"><i class="fas fa-cogs"></i> Maintenance</span></div>
+                        <div class="crop-item" onclick="showCropDetails('vegetables')"><h4><i class="fas fa-seedling"></i> Vegetables</h4><p><strong>Activity:</strong> Harvesting winter vegetables</p><span class="activity"><i class="fas fa-harvest"></i> Harvesting</span></div>
+                    </div>
+                </div>
+                <!-- January -->
+                <div class="month-card rabi" data-season="rabi">
+                    <div class="month-header"><span class="month-number">01</span><h3>January</h3><div class="season"><i class="fas fa-icicles"></i> Rabi Season - Peak Winter</div></div>
+                    <div class="month-body">
+                        <div class="crop-item" onclick="showCropDetails('wheat')"><h4><i class="fas fa-seedling"></i> Wheat</h4><p><strong>Activity:</strong> Second irrigation at tillering</p><p><strong>Care:</strong> Frost protection measures</p><span class="activity"><i class="fas fa-tint"></i> Irrigation</span></div>
+                        <div class="crop-item" onclick="showCropDetails('mustard')"><h4><i class="fas fa-seedling"></i> Mustard</h4><p><strong>Activity:</strong> Flowering stage begins</p><span class="activity"><i class="fas fa-flower"></i> Flowering</span></div>
+                        <div class="crop-item" onclick="showCropDetails('strawberry')"><h4><i class="fas fa-seedling"></i> Strawberry</h4><p><strong>Activity:</strong> Fruit development phase</p><span class="activity"><i class="fas fa-seedling"></i> Growth</span></div>
+                    </div>
+                </div>
+                <!-- February -->
+                <div class="month-card rabi" data-season="rabi">
+                    <div class="month-header"><span class="month-number">02</span><h3>February</h3><div class="season"><i class="fas fa-sun"></i> Rabi Season - Late Winter</div></div>
+                    <div class="month-body">
+                        <div class="crop-item" onclick="showCropDetails('wheat')"><h4><i class="fas fa-seedling"></i> Wheat</h4><p><strong>Activity:</strong> Third irrigation (Tillering stage)</p><p><strong>Fertilizer:</strong> Top dressing with nitrogen</p><span class="activity"><i class="fas fa-prescribe-bottle"></i> Fertilizer</span></div>
+                        <div class="crop-item" onclick="showCropDetails('potato')"><h4><i class="fas fa-seedling"></i> Potato</h4><p><strong>Activity:</strong> Harvesting early varieties</p><span class="activity"><i class="fas fa-harvest"></i> Harvesting</span></div>
+                        <div class="crop-item" onclick="showCropDetails('watermelon')"><h4><i class="fas fa-seedling"></i> Watermelon</h4><p><strong>Sowing:</strong> Start nursery preparation</p><span class="activity"><i class="fas fa-seedling"></i> Preparation</span></div>
+                    </div>
+                </div>
+                <!-- March -->
+                <div class="month-card rabi" data-season="rabi">
+                    <div class="month-header"><span class="month-number">03</span><h3>March</h3><div class="season"><i class="fas fa-flower"></i> Rabi Season - Harvesting</div></div>
+                    <div class="month-body">
+                        <div class="crop-item" onclick="showCropDetails('wheat')"><h4><i class="fas fa-seedling"></i> Wheat</h4><p><strong>Activity:</strong> Last irrigation before maturity</p><p><strong>Pest:</strong> Monitor for aphids and rust</p><span class="activity"><i class="fas fa-cogs"></i> Maintenance</span></div>
+                        <div class="crop-item" onclick="showCropDetails('mustard')"><h4><i class="fas fa-seedling"></i> Mustard</h4><p><strong>Activity:</strong> Harvesting at proper maturity</p><span class="activity"><i class="fas fa-harvest"></i> Harvesting</span></div>
+                        <div class="crop-item" onclick="showCropDetails('mango')"><h4><i class="fas fa-seedling"></i> Mango</h4><p><strong>Activity:</strong> Flowering season begins</p><span class="activity"><i class="fas fa-flower"></i> Flowering</span></div>
+                    </div>
+                </div>
+                <!-- April -->
+                <div class="month-card summer" data-season="summer">
+                    <div class="month-header"><span class="month-number">04</span><h3>April</h3><div class="season"><i class="fas fa-sun"></i> Summer / Pre-Monsoon</div></div>
+                    <div class="month-body">
+                        <div class="crop-item" onclick="showCropDetails('wheat')"><h4><i class="fas fa-seedling"></i> Wheat</h4><p><strong>Activity:</strong> Harvesting and threshing</p><span class="activity"><i class="fas fa-harvest"></i> Harvesting</span></div>
+                        <div class="crop-item" onclick="showCropDetails('muskmelon')"><h4><i class="fas fa-seedling"></i> Muskmelon</h4><p><strong>Sowing:</strong> Direct sowing in prepared beds</p><span class="activity"><i class="fas fa-play-circle"></i> Sowing</span></div>
+                        <div class="crop-item" onclick="showCropDetails('vegetables')"><h4><i class="fas fa-seedling"></i> Vegetables</h4><p><strong>Sowing:</strong> Okra, Bottle gourd, Bitter gourd</p><span class="activity"><i class="fas fa-sun"></i> Summer Crops</span></div>
+                    </div>
+                </div>
+                <!-- May -->
+                <div class="month-card summer" data-season="summer">
+                    <div class="month-header"><span class="month-number">05</span><h3>May</h3><div class="season"><i class="fas fa-cloud-sun"></i> Summer / Pre-Monsoon Prep</div></div>
+                    <div class="month-body">
+                        <div class="crop-item" onclick="showCropDetails('rice')"><h4><i class="fas fa-seedling"></i> Rice</h4><p><strong>Activity:</strong> Land preparation for monsoon</p><p><strong>Tip:</strong> Summer ploughing helps pest control</p><span class="activity"><i class="fas fa-cogs"></i> Preparation</span></div>
+                        <div class="crop-item" onclick="showCropDetails('maize')"><h4><i class="fas fa-seedling"></i> Maize</h4><p><strong>Activity:</strong> Spring maize harvesting</p><span class="activity"><i class="fas fa-harvest"></i> Harvesting</span></div>
+                        <div class="crop-item" onclick="showCropDetails('mango')"><h4><i class="fas fa-seedling"></i> Mango</h4><p><strong>Activity:</strong> Fruit maturity and harvesting</p><span class="activity"><i class="fas fa-harvest"></i> Harvesting</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Farming Tips -->
+            <div class="info-box">
+                <h2><i class="fas fa-lightbulb"></i> Important Farming Tips by Season</h2>
+                <div class="info-grid">
+                    <div class="info-item"><h4><i class="fas fa-cloud-rain"></i> Kharif Season (Jun-Oct)</h4><p>• <strong>Ensure proper drainage</strong> to prevent waterlogging<br>• Use <strong>water-resistant varieties</strong> for flood-prone areas<br>• <strong>Monitor for pest outbreaks</strong> during humid conditions<br>• Apply <strong>nitrogen in split doses</strong> for better uptake</p></div>
+                    <div class="info-item"><h4><i class="fas fa-snowflake"></i> Rabi Season (Nov-Mar)</h4><p>• <strong>Timely irrigation</strong> is critical for yield<br>• <strong>Protect from frost</strong> during Dec-Jan with mulching<br>• Always use <strong>certified seeds</strong> for disease resistance<br>• Apply <strong>phosphorus at sowing</strong> for root development</p></div>
+                    <div class="info-item"><h4><i class="fas fa-sun"></i> Summer Season (Apr-May)</h4><p>• Focus on <strong>irrigation management</strong> to conserve water<br>• Grow <strong>short-duration crops</strong> to beat the heat<br>• <strong>Prepare land</strong> for upcoming monsoon season<br>• <strong>Maintain farm equipment</strong> during off-season</p></div>
+                    <div class="info-item"><h4><i class="fas fa-leaf"></i> General Recommendations</h4><p>• <strong>Test soil every 2 years</strong> for nutrient management<br>• Practice <strong>crop rotation</strong> to maintain soil health<br>• Use <strong>organic manure</strong> alongside chemical fertilizers<br>• Follow <strong>IPM practices</strong> for sustainable pest control</p></div>
+                </div>
+            </div>
+
+            <!-- Government Schemes -->
+            <div class="info-box">
+                <h2><i class="fas fa-hand-holding-usd"></i> Government Schemes & Support</h2>
+                <div class="info-grid">
+                    <div class="info-item"><h4><i class="fas fa-coins"></i> PM-KISAN</h4><p><strong>₹6,000 per year</strong> income support in 3 equal installments directly to farmer accounts. <strong>Eligibility:</strong> All landholding farmer families.</p></div>
+                    <div class="info-item"><h4><i class="fas fa-shield-alt"></i> PMFBY (Crop Insurance)</h4><p>Crop insurance at just <strong>2% premium for Kharif</strong>, 1.5% for Rabi crops. Covers yield losses due to natural calamities.</p></div>
+                    <div class="info-item"><h4><i class="fas fa-tint"></i> PMKSY (Irrigation)</h4><p><strong>Subsidy up to 55%</strong> for drip and sprinkler irrigation systems. Promotes water-use efficiency and higher productivity.</p></div>
+                    <div class="info-item"><h4><i class="fas fa-id-card"></i> Soil Health Card</h4><p><strong>Free soil testing</strong> and personalized nutrient recommendations. Get your card from nearest Krishi Vigyan Kendra.</p></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div>
+                    <h3><i class="fas fa-seedling"></i> About Crop Calendar</h3>
+                    <p>This interactive crop calendar helps Indian farmers plan their agricultural activities month-wise based on regional climate patterns, soil conditions, and market demands for optimal productivity.</p>
+                </div>
+                <div>
+                    <h3><i class="fas fa-compass"></i> Navigate</h3>
+                    <ul>
+                        <li><a href="/"><i class="fas fa-chevron-right"></i> Home</a></li>
+                        <li><a href="/chat"><i class="fas fa-chevron-right"></i> AI Assistant</a></li>
+                        <li><a href="/crop-calendar"><i class="fas fa-chevron-right"></i> Crop Calendar</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3><i class="fas fa-address-card"></i> Contact</h3>
+                    <ul>
+                        <li><i class="fas fa-building"></i> Ministry of Agriculture</li>
+                        <li><i class="fas fa-map-marker-alt"></i> Krishna Bhawan, New Delhi</li>
+                        <li><i class="fas fa-phone"></i> Helpline: 1800-180-1551</li>
+                        <li><a href="mailto:support@agriculture.gov.in"><i class="fas fa-envelope"></i> support@agriculture.gov.in</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="container">
+                © 2024 Ministry of Agriculture & Farmers Welfare, Government of India | <a href="#" style="color: var(--accent-end);"><i class="fas fa-shield-alt"></i> Privacy</a> | <a href="#" style="color: var(--accent-end);"><i class="fas fa-file-contract"></i> Terms</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // === Particles Animation ===
+            const particles = document.querySelectorAll('.particle');
+            particles.forEach(p => {
+                p.style.left = Math.random() * 100 + '%';
+                p.style.top = Math.random() * 100 + '%';
+                const s = Math.random() * 4 + 2;
+                p.style.width = s + 'px';
+                p.style.height = s + 'px';
+                p.style.animationDelay = Math.random() * 5 + 's';
+                p.style.opacity = Math.random() * 0.5 + 0.2;
+            });
+
+            // === Intersection Observer for Card Animations ===
+            const observer = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.animation = 'cardPop 0.5s ease-out forwards';
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.1 });
+            
+            document.querySelectorAll('.month-card, .info-box').forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'scale(0.95)';
+                observer.observe(card);
+            });
+
+            // === Background Slideshow ===
+            const slides = document.querySelectorAll('.background-slide');
+            let currentSlide = 0;
+            setInterval(() => {
+                slides[currentSlide].classList.remove('active');
+                currentSlide = (currentSlide + 1) % slides.length;
+                slides[currentSlide].classList.add('active');
+            }, 8000);
+        });
+
+        // === Season Filter ===
+        function filterSeason(season, event) {
+            document.querySelectorAll('.season-btn').forEach(btn => btn.classList.remove('active'));
+            if (event && event.currentTarget) {
+                event.currentTarget.classList.add('active');
+            }
+            document.querySelectorAll('.month-card').forEach(card => {
+                if (season === 'all' || card.dataset.season === season) {
+                    card.style.display = 'block';
+                    card.style.animation = 'cardPop 0.5s ease-out forwards';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // === Crop Details Modal ===
+        function showCropDetails(cropName) {
+            const crops = {
+                'rice': '🌾 Rice requires 5-140mg/kg N, 5-70mg/kg P, 10-210mg/kg K. Optimal temp: 8-43°C.',
+                'wheat': '🌾 Wheat needs well-drained loamy soil. Sow Nov-Dec. Apply N in 3 splits.',
+                'maize': '🌽 Maize grows best at 21-27°C. Requires good drainage.',
+                'cotton': '🌱 Cotton needs 150-200 frost-free days. Monitor for bollworm.',
+                'vegetables': '🥬 Vegetables need fertile, well-drained soil. Use organic manure.'
+            };
+            const message = crops[cropName] || `🌱 ${cropName.charAt(0).toUpperCase() + cropName.slice(1)}: Consult your local KVK.`;
+            alert(message + '\n\n💡 Tip: Use our AI Assistant for personalized crop advice!');
+        }
+
+        // === Market Price Checker ===
+        async function checkMarketPrice() {
+            const crop = document.getElementById('cropSelect').value;
+            if (!crop) {
+                alert('Please select a crop first!');
+                return;
+            }
+            
+            document.getElementById('priceResult').style.display = 'none';
+            document.getElementById('loadingPrice').style.display = 'block';
+            
+            try {
+                const response = await fetch('/api/market-price/' + crop);
+                const data = await response.json();
+                document.getElementById('loadingPrice').style.display = 'none';
+                
+                if (data.success) {
+                    document.getElementById('priceValue').textContent = '₹' + data.price;
+                    document.getElementById('minPrice').textContent = data.min;
+                    document.getElementById('maxPrice').textContent = data.max;
+                    document.getElementById('marketName').textContent = data.market;
+                    document.getElementById('stateName').textContent = data.state;
+                    
+                    const badge = document.getElementById('dataSource');
+                    if (data.source === 'simulated') {
+                        badge.textContent = 'Simulated';
+                        badge.className = 'source-badge simulated';
+                    } else {
+                        badge.textContent = 'Live';
+                        badge.className = 'source-badge';
+                    }
+                    
+                    document.getElementById('priceResult').style.display = 'block';
+                    document.getElementById('priceResult').style.animation = 'slideIn 0.5s ease-out';
+                } else {
+                    alert('Price data not available for this crop. Please try another crop.');
+                }
+            } catch (error) {
+                console.error('Error fetching price:', error);
+                document.getElementById('loadingPrice').style.display = 'none';
+                alert('Error fetching market price. Please try again.');
+            }
+        }
+
+        // === Crop Item Hover Effects ===
+        document.querySelectorAll('.crop-item').forEach(item => {
+            item.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateX(6px)';
+            });
+            item.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateX(0)';
+            });
+        });
+
+        // === Service Worker for PWA ===
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/static/sw.js')
+                    .then(reg => console.log('SW registered: ', reg))
+                    .catch(err => console.log('SW failed: ', err));
+            });
+        }
+    </script>
+</body>
+</html>

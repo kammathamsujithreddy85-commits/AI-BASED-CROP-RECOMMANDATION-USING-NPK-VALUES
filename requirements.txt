@@ -1,0 +1,11 @@
+Flask
+flask-cors
+flask-limiter
+joblib
+pandas
+numpy
+scikit-learn
+ollama
+requests
+waitress
+python-dotenv

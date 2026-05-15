@@ -1,0 +1,6 @@
+Model,Accuracy (%),Training Time (s)
+Random Forest,99.54545454545455,0.31
+SVM,98.86363636363636,0.11
+Decision Tree,98.18181818181819,0.03
+KNN,98.18181818181819,0.07
+Logistic Regression,97.27272727272728,0.15

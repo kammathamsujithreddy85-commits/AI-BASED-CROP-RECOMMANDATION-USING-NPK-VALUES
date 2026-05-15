@@ -1,0 +1,120 @@
+/* === FORM VALIDATION STYLES === */
+.validation-message {
+    font-size: 12px;
+    margin-top: 6px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    display: none;
+    /* Hidden by default */
+    animation: slideIn 0.3s ease-out;
+    border-left: 3px solid;
+}
+
+.validation-message.error {
+    display: block;
+    background: linear-gradient(135deg, rgba(231, 76, 60, 0.1), rgba(192, 57, 43, 0.08));
+    border-left-color: #e74c3c;
+    color: #721c24;
+}
+
+.validation-message.warning {
+    display: block;
+    background: linear-gradient(135deg, rgba(243, 156, 18, 0.12), rgba(241, 196, 15, 0.08));
+    border-left-color: #f39c12;
+    color: #856404;
+}
+
+.validation-message.success {
+    display: block;
+    background: linear-gradient(135deg, rgba(40, 167, 69, 0.12), rgba(46, 204, 113, 0.08));
+    border-left-color: #28a745;
+    color: #155724;
+}
+
+.validation-message i {
+    margin-right: 5px;
+    font-weight: 600;
+}
+
+/* Input border colors for visual feedback */
+input.valid {
+    border-color: #28a745 !important;
+    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.15) !important;
+}
+
+input.invalid {
+    border-color: #e74c3c !important;
+    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.15) !important;
+}
+
+input.warning {
+    border-color: #f39c12 !important;
+    box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.15) !important;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* === CONFIDENCE METER STYLES === */
+.confidence-meter-container {
+    margin-top: 15px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border: 1px solid #e1e5eb;
+}
+
+.confidence-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--dark);
+}
+
+.confidence-bar-bg {
+    width: 100%;
+    height: 12px;
+    background: #e1e5eb;
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+}
+
+.confidence-bar-fill {
+    height: 100%;
+    border-radius: 20px;
+    transition: width 1s ease-out, background-color 0.5s ease;
+    width: 0%;
+    /* Starts at 0 for animation */
+}
+
+.confidence-bar-fill.low {
+    background: linear-gradient(90deg, #e74c3c, #c0392b);
+}
+
+.confidence-bar-fill.medium {
+    background: linear-gradient(90deg, #f39c12, #d68910);
+}
+
+.confidence-bar-fill.high {
+    background: linear-gradient(90deg, #27ae60, #2ecc71);
+}
+
+.confidence-note {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--gray);
+    font-style: italic;
+}

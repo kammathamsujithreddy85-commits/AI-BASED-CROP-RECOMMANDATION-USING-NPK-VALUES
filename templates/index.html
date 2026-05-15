@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CropAI | Smart Farming Assistant</title>
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/2913/2913520.png" type="image/png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#1a5276">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-touch-fullscreen" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <style>
+        /* === CSS VARIABLES === */
+        :root {
+            --primary-start: #1a5276;
+            --primary-end: #2e86de;
+            --accent-start: #27ae60;
+            --accent-end: #2ecc71;
+            --warning-start: #f39c12;
+            --warning-end: #f1c40f;
+            --danger-start: #e74c3c;
+            --danger-end: #c0392b;
+            --dark: #1a1a2e;
+            --darker: #16213e;
+            --light: #f8f9fa;
+            --gray: #6c757d;
+            --success: #28a745;
+            --shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            --shadow-hover: 0 20px 60px rgba(0, 0, 0, 0.25);
+            --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            --border-radius: 16px;
+            --border-radius-lg: 24px;
+        }
+
+        /* === RESET & BASE === */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        @keyframes gradientShift { 0% { background-position: 0% 50% } 50% { background-position: 100% 50% } 100% { background-position: 0% 50% } }
+        @keyframes float { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-10px) } }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(46, 134, 222, 0.4) } 70% { box-shadow: 0 0 0 15px rgba(46, 134, 222, 0) } 100% { box-shadow: 0 0 0 0 rgba(46, 134, 222, 0) } }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(30px) } to { opacity: 1; transform: translateY(0) } }
+        @keyframes shimmer { 0% { background-position: -200% 0 } 100% { background-position: 200% 0 } }
+        @keyframes spin { to { transform: rotate(360deg) } }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: transparent !important;
+            line-height: 1.6;
+            color: var(--dark);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* === BACKGROUND SLIDESHOW === */
+        .background-slideshow {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: -9999;
+            pointer-events: none;
+        }
+        .background-slide {
+            position: absolute;
+            width: 100%; height: 100%;
+            background-size: cover !important;
+            background-position: center !important;
+            opacity: 0;
+            transition: opacity 2s ease-in-out;
+        }
+        .background-slide.active { opacity: 0.5; }
+
+        /* === PARTICLES === */
+        .particles {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: -9998;
+            overflow: hidden;
+            pointer-events: none;
+        }
+        .particle {
+            position: absolute;
+            width: 4px; height: 4px;
+            background: rgba(46, 134, 222, 0.3);
+            border-radius: 50%;
+            animation: float 6s infinite ease-in-out;
+            opacity: 0;
+        }
+        .particle:nth-child(1) { left: 10%; animation-delay: 0s; animation-duration: 8s }
+        .particle:nth-child(2) { left: 20%; animation-delay: 1s; animation-duration: 10s }
+        .particle:nth-child(3) { left: 30%; animation-delay: 2s; animation-duration: 7s }
+        .particle:nth-child(4) { left: 40%; animation-delay: 0.5s; animation-duration: 9s }
+        .particle:nth-child(5) { left: 50%; animation-delay: 1.5s; animation-duration: 11s }
+        .particle:nth-child(6) { left: 60%; animation-delay: 2.5s; animation-duration: 8s }
+        .particle:nth-child(7) { left: 70%; animation-delay: 0.8s; animation-duration: 10s }
+        .particle:nth-child(8) { left: 80%; animation-delay: 1.8s; animation-duration: 9s }
+        .particle:nth-child(9) { left: 90%; animation-delay: 2.2s; animation-duration: 7s }
+
+        /* === HEADER (Solid Blue - Like Chat.html) === */
+        .header {
+            background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
+            color: white;
+            padding: 0;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            z-index: 100;
+        }
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-start), var(--warning-start), var(--accent-end));
+            animation: gradientShift 8s ease infinite;
+        }
+        .header-top {
+            background: rgba(26, 26, 46, 0.98);
+            padding: 10px 0;
+            font-size: 13px;
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+        }
+        .header-top .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .emblem-section { padding: 20px 0; }
+        .emblem-section .container {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+        .emblem {
+            width: 60px; height: 60px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.05));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: float 4s ease-in-out infinite;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+        .emblem svg {
+            width: 35px; height: 35px;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+        .header-text h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            letter-spacing: -0.5px;
+        }
+        .header-text p {
+            font-size: 15px;
+            opacity: 0.95;
+            font-weight: 300;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* === NAVIGATION (Solid Dark - Like Chat.html) === */
+        .nav {
+            background: rgba(26, 26, 46, 0.98);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            padding: 0;
+            position: sticky;
+            top: 0;
+            z-index: 99;
+        }
+        .nav ul {
+            list-style: none;
+            display: flex;
+            gap: 2px;
+            padding: 0 24px;
+        }
+        .nav a {
+            display: block;
+            padding: 16px 22px;
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: var(--transition);
+            position: relative;
+            border-radius: 8px 8px 0 0;
+        }
+        .nav a::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 50%;
+            width: 0; height: 3px;
+            background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+            transition: var(--transition);
+            transform: translateX(-50%);
+            border-radius: 3px;
+        }
+        .nav a:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .nav a:hover::after { width: 70%; }
+        .nav a.active {
+            color: white;
+            background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+            font-weight: 600;
+        }
+        .nav a.active::after { display: none; }
+
+        /* === MAIN CONTENT === */
+        .main-content {
+            padding: 50px 0;
+            animation: slideIn 0.6s ease-out;
+        }
+
+        .alert-banner {
+            background: linear-gradient(135deg, rgba(243, 156, 18, 0.15), rgba(241, 196, 15, 0.1));
+            border: 1px solid rgba(243, 156, 18, 0.3);
+            border-left: 4px solid var(--warning-start);
+            padding: 14px 24px;
+            margin-bottom: 30px;
+            font-size: 14px;
+            color: #7d5a00;
+            border-radius: 0 var(--border-radius) var(--border-radius) 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideIn 0.5s ease-out;
+        }
+        .alert-banner i {
+            font-size: 18px;
+            animation: pulse 2s infinite;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+        }
+
+        /* === GLASSMORPHISM CARDS (Matches Chat.html) === */
+        .card, .sidebar-card, .result-box, .warning-box, .recommendation-box,
+        .alert-banner, .form-group, .input-wrapper, .validation-message,
+        .confidence-meter-container, .alternative-crops, .input-summary-box,
+        .result-warnings-box, .result-recs-box, .crop-display-container,
+        .fallback-card, .quick-links, .info-list, .footer {
+            background: rgba(255, 255, 255, 0.25) !important;
+            backdrop-filter: blur(20px) saturate(180%) !important;
+            -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+            border: 1px solid rgba(255, 255, 255, 0.4) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+            border-radius: 16px;
+        }
+
+        .card {
+            overflow: hidden;
+            transition: var(--transition);
+            animation: slideIn 0.6s ease-out 0.1s both;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        /* === CARD HEADERS (Blue Gradient) === */
+        .card-header, .sidebar-header {
+            background: linear-gradient(135deg, 
+                rgba(26, 82, 118, 0.95), 
+                rgba(46, 134, 222, 0.95)) !important;
+            backdrop-filter: blur(10px) !important;
+            padding: 20px 28px;
+            font-size: 20px;
+            font-weight: 600;
+            color: white !important;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .card-header i {
+            font-size: 22px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .card-body { padding: 30px; }
+
+        /* === FORM STYLES === */
+        .form-group { margin-bottom: 22px; position: relative; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 8px; }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: var(--dark);
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        label i { color: var(--primary-end); font-size: 13px; }
+        
+        .label-info {
+            font-size: 12px;
+            color: var(--gray);
+            font-weight: 400;
+            margin-left: auto;
+            background: rgba(46, 134, 222, 0.1);
+            padding: 3px 10px;
+            border-radius: 20px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            font-size: 15px;
+            border-radius: 12px;
+            transition: var(--transition);
+            background: rgba(255, 255, 255, 0.7) !important;
+            backdrop-filter: blur(10px);
+        }
+        input:focus {
+            outline: none;
+            border-color: var(--primary-end);
+            background: rgba(255, 255, 255, 0.9) !important;
+            box-shadow: 0 0 0 4px rgba(46, 134, 222, 0.15);
+            transform: translateY(-1px);
+        }
+        input::placeholder { color: #adb5bd; }
+
+        .input-wrapper { position: relative; }
+        .input-wrapper::after {
+            content: attr(data-unit);
+            position: absolute;
+            right: 16px; top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+            font-size: 13px;
+            font-weight: 500;
+            pointer-events: none;
+        }
+
+        .validation-message {
+            font-size: 12px;
+            margin-top: 6px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            display: none;
+            animation: slideIn 0.3s ease-out;
+            border-left: 3px solid;
+        }
+        .validation-message.error {
+            display: block;
+            background: linear-gradient(135deg, rgba(231, 76, 60, 0.1), rgba(192, 57, 43, 0.08));
+            border-left-color: #e74c3c;
+            color: #721c24;
+        }
+        .validation-message.warning {
+            display: block;
+            background: linear-gradient(135deg, rgba(243, 156, 18, 0.12), rgba(241, 196, 15, 0.08));
+            border-left-color: #f39c12;
+            color: #856404;
+        }
+        .validation-message.success {
+            display: block;
+            background: linear-gradient(135deg, rgba(40, 167, 69, 0.12), rgba(46, 204, 113, 0.08));
+            border-left-color: #28a745;
+            color: #155724;
+        }
+
+        /* === BUTTONS === */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 14px 32px;
+            background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
+            color: white;
+            border: none;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            border-radius: 14px;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(46, 134, 222, 0.4);
+        }
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+        .btn:hover::before { left: 100%; }
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(46, 134, 222, 0.6);
+        }
+        .btn:active { transform: translateY(-1px); }
+        .btn.loading {
+            pointer-events: none;
+            position: relative;
+        }
+        .btn.loading::after {
+            content: '';
+            position: absolute;
+            width: 20px; height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-left: 10px;
+        }
+        .btn-full { width: 100%; }
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #5a6268);
+            box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+        }
+        .btn-secondary:hover { box-shadow: 0 8px 25px rgba(108, 117, 125, 0.5); }
+        .btn-group { display: flex; gap: 15px; margin-top: 28px; }
+
+        /* === RESULT BOX === */
+        .result-box {
+            margin-top: 30px;
+            padding: 25px;
+            background: linear-gradient(135deg, rgba(40, 167, 69, 0.08), rgba(46, 204, 113, 0.05));
+            border: 2px solid rgba(40, 167, 69, 0.3);
+            border-left: 5px solid var(--success);
+            border-radius: 16px;
+            animation: slideIn 0.5s ease-out;
+        }
+        .result-box h3 {
+            color: var(--dark);
+            margin-bottom: 12px;
+            font-size: 19px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .result-box h3 i { color: var(--success); font-size: 20px; }
+        .result-box .crop-name {
+            font-size: 32px;
+            color: var(--accent-start);
+            font-weight: 800;
+            margin: 18px 0;
+            background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -1px;
+        }
+        .result-box .input-summary {
+            margin-top: 18px;
+            padding-top: 18px;
+            border-top: 1px dashed rgba(0, 0, 0, 0.1);
+            font-size: 13px;
+            color: var(--gray);
+            line-height: 1.7;
+        }
+        .result-box .input-summary strong { color: var(--dark); }
+
+        /* === SIDEBAR === */
+        .sidebar-card {
+            margin-bottom: 24px;
+            overflow: hidden;
+            transition: var(--transition);
+            animation: slideIn 0.6s ease-out both;
+        }
+        .sidebar-card:nth-child(2) { animation-delay: 0.15s }
+        .sidebar-card:nth-child(3) { animation-delay: 0.3s }
+        .sidebar-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-hover);
+        }
+        .sidebar-header i { font-size: 18px; }
+        .sidebar-body { padding: 20px; }
+
+        .info-list { list-style: none; }
+        .info-list li {
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: var(--transition);
+        }
+        .info-list li:hover {
+            background: rgba(46, 134, 222, 0.05);
+            padding-left: 8px;
+            border-radius: 8px;
+        }
+        .info-list li:last-child { border-bottom: none; }
+        .info-list li strong { color: var(--primary-end); font-weight: 600; }
+        .info-list li .value {
+            background: rgba(46, 134, 222, 0.1);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--primary-start);
+        }
+
+        .quick-links { list-style: none; }
+        .quick-links li { margin-bottom: 12px; }
+        .quick-links a {
+            color: var(--primary-start);
+            text-decoration: none;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: linear-gradient(135deg, rgba(46, 134, 222, 0.08), rgba(46, 134, 222, 0.03));
+            border-left: 3px solid var(--primary-end);
+            border-radius: 0 10px 10px 0;
+            transition: var(--transition);
+            font-weight: 500;
+        }
+        .quick-links a i {
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+        .quick-links a:hover {
+            background: linear-gradient(135deg, rgba(46, 134, 222, 0.15), rgba(46, 134, 222, 0.08));
+            padding-left: 20px;
+            transform: translateX(3px);
+            border-left-width: 4px;
+        }
+
+        /* === WARNING & RECOMMENDATION BOXES === */
+        .warning-box, .recommendation-box {
+            border-radius: 14px;
+            padding: 18px 22px;
+            margin-bottom: 22px;
+            animation: slideIn 0.4s ease-out;
+        }
+        .warning-box {
+            background: linear-gradient(135deg, rgba(243, 156, 18, 0.12), rgba(241, 196, 15, 0.08));
+            border: 1px solid rgba(243, 156, 18, 0.3);
+            border-left: 4px solid var(--warning-start);
+        }
+        .warning-box h4 {
+            color: #856404;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 16px;
+        }
+        .warning-box ul {
+            margin-left: 24px;
+            color: #7d5a00;
+            font-size: 14px;
+        }
+        .warning-box li {
+            margin-bottom: 6px;
+            line-height: 1.5;
+        }
+        .recommendation-box {
+            background: linear-gradient(135deg, rgba(40, 167, 69, 0.12), rgba(46, 204, 113, 0.08));
+            border: 1px solid rgba(40, 167, 69, 0.3);
+            border-left: 4px solid var(--success);
+        }
+        .recommendation-box h4 {
+            color: #155724;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 16px;
+        }
+        .recommendation-box ul {
+            margin-left: 24px;
+            color: #1a4d2e;
+            font-size: 14px;
+        }
+        .recommendation-box li {
+            margin-bottom: 6px;
+            line-height: 1.5;
+        }
+
+        /* === CROP IMAGE & FALLBACK === */
+        .crop-display-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 20px auto;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .crop-image {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 12px;
+        }
+        .fallback-card {
+            width: 100%;
+            height: 300px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+            padding: 30px;
+            border-radius: 12px;
+        }
+        .crop-emoji { font-size: 80px; margin-bottom: 20px; }
+        .fallback-card .crop-name {
+            font-size: 42px;
+            font-weight: bold;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            background: none;
+            -webkit-text-fill-color: white;
+        }
+        .optimal-tag {
+            margin-top: 15px;
+            font-size: 16px;
+            opacity: 0.9;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+        }
+
+        /* === CONFIDENCE METER === */
+        .confidence-meter-container {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 1px solid #e1e5eb;
+        }
+        .confidence-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        .confidence-bar-bg {
+            width: 100%;
+            height: 12px;
+            background: #e1e5eb;
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+        .confidence-bar-fill {
+            height: 100%;
+            border-radius: 20px;
+            transition: width 1s ease-out, background-color 0.5s ease;
+            width: 0%;
+        }
+        .confidence-bar-fill.low { background: linear-gradient(90deg, #e74c3c, #c0392b); }
+        .confidence-bar-fill.medium { background: linear-gradient(90deg, #f39c12, #d68910); }
+        .confidence-bar-fill.high { background: linear-gradient(90deg, #27ae60, #2ecc71); }
+        .confidence-note {
+            margin-top: 8px;
+            font-size: 12px;
+            color: var(--gray);
+            font-style: italic;
+        }
+        .confidence-note.low { color: #e74c3c; }
+        .confidence-note.high { color: #27ae60; }
+
+        /* === FOOTER === */
+        .footer {
+            background: linear-gradient(135deg, var(--darker), var(--dark));
+            color: rgba(255, 255, 255, 0.9);
+            padding: 50px 0 30px;
+            margin-top: 60px;
+            position: relative;
+        }
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-start), var(--warning-start), var(--accent-end));
+            animation: gradientShift 8s ease infinite;
+        }
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 40px;
+        }
+        .footer h3 {
+            font-size: 17px;
+            margin-bottom: 20px;
+            color: var(--accent-end);
+            position: relative;
+            padding-bottom: 12px;
+        }
+        .footer h3::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0;
+            width: 40px; height: 2px;
+            background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+            border-radius: 2px;
+        }
+        .footer p, .footer li {
+            font-size: 14px;
+            opacity: 0.9;
+            line-height: 2;
+        }
+        .footer ul { list-style: none; }
+        .footer a {
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .footer a:hover {
+            color: var(--accent-end);
+            transform: translateX(3px);
+        }
+        .footer a i {
+            font-size: 13px;
+            opacity: 0.8;
+        }
+        .footer-bottom {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 18px 0;
+            text-align: center;
+            font-size: 13px;
+            opacity: 0.85;
+            margin-top: 35px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* === FORM PROGRESS & TOOLTIPS === */
+        .form-progress {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 25px;
+            padding: 0 4px;
+        }
+        .progress-step {
+            flex: 1;
+            height: 4px;
+            background: #e1e5eb;
+            border-radius: 2px;
+            transition: var(--transition);
+        }
+        .progress-step.active {
+            background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+        }
+        [data-tooltip] {
+            position: relative;
+            cursor: help;
+        }
+        [data-tooltip]::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%; left: 50%;
+            transform: translateX(-50%) translateY(8px);
+            background: var(--dark);
+            color: white;
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+            z-index: 100;
+            box-shadow: var(--shadow);
+        }
+        [data-tooltip]:hover::after {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* === FLOATING ACTION BUTTON === */
+        .fab {
+            position: fixed;
+            bottom: 25px; right: 25px;
+            width: 56px; height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4);
+            cursor: pointer;
+            transition: var(--transition);
+            z-index: 1000;
+            display: none;
+        }
+        .fab:hover {
+            transform: scale(1.1) translateY(-3px);
+            box-shadow: 0 10px 30px rgba(39, 174, 96, 0.6);
+        }
+
+        /* === ACCESSIBILITY === */
+        html { scroll-behavior: smooth; }
+        ::selection { background: rgba(46, 134, 222, 0.2); color: var(--primary-start); }
+        input:focus-visible, button:focus-visible, a:focus-visible {
+            outline: 2px solid var(--accent-end);
+            outline-offset: 2px;
+        }
+        .skip-link:focus {
+            left: 50%;
+            transform: translateX(-50%);
+            top: 0;
+        }
+        *:focus-visible {
+            outline: 3px solid var(--accent-end);
+            outline-offset: 2px;
+        }
+        button:focus, input:focus {
+            outline: 2px solid var(--primary-end);
+            outline-offset: 2px;
+        }
+
+        /* === TEXT READABILITY ON GLASS === */
+        .card-body, .sidebar-body, .result-box h3, .crop-name,
+        label, .info-list li, .quick-links a, .confidence-label,
+        .warning-box h4, .recommendation-box h4 {
+            color: #1a1a2e !important;
+        }
+
+        /* === RESPONSIVE === */
+        @media(max-width: 992px) {
+            .content-grid { grid-template-columns: 1fr; }
+            .footer-grid {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            .footer h3::after {
+                left: 50%;
+                transform: translateX(-50%);
+            }
+        }
+        @media(max-width: 768px) {
+            .form-row { grid-template-columns: 1fr; }
+            .btn-group { flex-direction: column; }
+            .header-text h1 { font-size: 24px; }
+            .nav ul { flex-wrap: wrap; justify-content: center; }
+            .card-body { padding: 24px; }
+            .nav ul {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr !important;
+                gap: 2px !important;
+                padding: 0 !important;
+            }
+            .nav a {
+                padding: 12px 5px !important;
+                font-size: 11px !important;
+                text-align: center !important;
+                border-radius: 0 !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                line-height: 1.4 !important;
+            }
+            .nav a i {
+                font-size: 16px !important;
+                margin-bottom: 4px !important;
+            }
+            .nav a.active {
+                background: linear-gradient(135deg, var(--accent-start), var(--accent-end)) !important;
+                color: white !important;
+            }
+            .fab { display: flex; }
+        }
+        @media(max-width: 480px) {
+            .header-top { font-size: 11px; padding: 8px 0; }
+            .alert-banner { font-size: 12px; padding: 10px 15px; }
+            .label-info { display: none; }
+        }
+    </style>
+</head>
+
+<body>
+    <a href="#main-form" class="skip-link">Skip to main form</a>
+    
+    <!-- Dynamic Background Slideshow -->
+    <div class="background-slideshow">
+        <div class="background-slide active" style="background-image: url('https://images.unsplash.com/photo-1586771107445-d3ca888129ff?w=1920&q=80');"></div>
+        <div class="background-slide" style="background-image: url('https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=1920&q=80');"></div>
+        <div class="background-slide" style="background-image: url('https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=1920&q=80');"></div>
+        <div class="background-slide" style="background-image: url('https://images.unsplash.com/photo-1605000797499-95a51c5269ae?w=1920&q=80');"></div>
+        <div class="background-slide" style="background-image: url('https://images.unsplash.com/photo-1592982537447-7440770cbfc9?w=1920&q=80');"></div>
+    </div>
+    
+    <!-- Animated Particles -->
+    <div class="particles">
+        <div class="particle"></div><div class="particle"></div><div class="particle"></div>
+        <div class="particle"></div><div class="particle"></div><div class="particle"></div>
+        <div class="particle"></div><div class="particle"></div><div class="particle"></div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-top">
+            <div class="container">
+                <span><i class="fas fa-landmark"></i> AI assistant for crop recommendation</span>
+                <span><i class="fas fa-headset"></i> Helpline: <strong>1800-180-1551</strong></span>
+            </div>
+        </div>
+        <div class="emblem-section">
+            <div class="container">
+                <div class="emblem">
+                    <svg viewBox="0 0 100 100" fill="white">
+                        <circle cx="50" cy="30" r="15"/>
+                        <path d="M50 45 L50 70 M35 55 L50 45 L65 55 M25 65 L50 70 L75 65" 
+                              stroke="white" stroke-width="3" fill="none" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div class="header-text">
+                    <h1><i class="fas fa-seedling"></i> CropAI</h1>
+                    <p>AI-Powered Agricultural Decision Support System</p>
+                </div>
+            </div>
+        </div>
+        <nav class="nav">
+            <div class="container">
+                <ul>
+                    <li><a href="/" class="active"><i class="fas fa-home"></i> Home</a></li>
+                    <li><a href="/chat"><i class="fas fa-robot"></i> AI Assistant</a></li>
+                    <li><a href="/crop-calendar"><i class="fas fa-calendar-alt"></i> Crop Calendar</a></li>
+                    <li><a href="/market-prices"><i class="fas fa-chart-line"></i> Market Prices</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <div class="alert-banner">
+                <i class="fas fa-bell"></i>
+                <span><strong>Advisory:</strong> Ensure soil test values are from certified laboratories. For organic farming options, contact your local Krishi Vigyan Kendra.</span>
+            </div>
+
+            <div class="content-grid">
+                <!-- Main Form Card -->
+                <div class="card">
+                    <div class="card-header"><i class="fas fa-clipboard-list"></i> Soil & Climate Data Entry</div>
+                    <div class="card-body">
+                        {% if warnings %}
+                        <div class="warning-box">
+                            <h4><i class="fas fa-exclamation-triangle"></i> Input Warnings</h4>
+                            <ul>{% for warning in warnings %}<li><i class="fas fa-chevron-right"></i> {{ warning }}</li>{% endfor %}</ul>
+                        </div>
+                        {% endif %}
+                        {% if recommendations %}
+                        <div class="recommendation-box">
+                            <h4><i class="fas fa-lightbulb"></i> Expert Recommendations</h4>
+                            <ul>{% for rec in recommendations %}<li><i class="fas fa-check-circle"></i> {{ rec }}</li>{% endfor %}</ul>
+                        </div>
+                        {% endif %}
+
+                        <div class="form-progress">
+                            <div class="progress-step active"></div>
+                            <div class="progress-step active"></div>
+                            <div class="progress-step"></div>
+                        </div>
+
+                        <form method="POST" action="/predict" id="cropForm" role="form" aria-label="Soil and climate data entry form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label><i class="fas fa-atom"></i> Nitrogen (N) <span class="label-info">Optimal: 5-140 mg/kg</span></label>
+                                    <div class="input-wrapper" data-unit="mg/kg">
+                                        <input type="number" step="0.1" name="N" id="N" required placeholder="5 - 140" min="0" max="250" aria-describedby="N-msg">
+                                    </div>
+                                    <div class="validation-message" id="N-msg"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label><i class="fas fa-fire"></i> Phosphorus (P) <span class="label-info">Optimal: 5-70 mg/kg</span></label>
+                                    <div class="input-wrapper" data-unit="mg/kg">
+                                        <input type="number" step="0.1" name="P" id="P" required placeholder="5 - 70" min="0" max="150" aria-describedby="P-msg">
+                                    </div>
+                                    <div class="validation-message" id="P-msg"></div>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label><i class="fas fa-bolt"></i> Potassium (K) <span class="label-info">Optimal: 10-210 mg/kg</span></label>
+                                    <div class="input-wrapper" data-unit="mg/kg">
+                                        <input type="number" step="0.1" name="K" id="K" required placeholder="10 - 210" min="0" max="350" aria-describedby="K-msg">
+                                    </div>
+                                    <div class="validation-message" id="K-msg"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label><i class="fas fa-temperature-high"></i> Temperature <span class="label-info">Optimal: 8-43 °C</span></label>
+                                    <div class="input-wrapper" data-unit="°C">
+                                        <input type="number" step="0.1" name="temperature" id="temperature" required placeholder="8 - 43" min="-10" max="60" aria-describedby="temperature-msg">
+                                    </div>
+                                    <div class="validation-message" id="temperature-msg"></div>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label><i class="fas fa-tint"></i> Humidity <span class="label-info">Optimal: 20-100 %</span></label>
+                                    <div class="input-wrapper" data-unit="%">
+                                        <input type="number" step="0.1" name="humidity" id="humidity" required placeholder="20 - 100" min="0" max="100" aria-describedby="humidity-msg">
+                                    </div>
+                                    <div class="validation-message" id="humidity-msg"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label><i class="fas fa-flask"></i> Soil pH <span class="label-info">Optimal: 4.0-9.0</span></label>
+                                    <div class="input-wrapper" data-unit="pH">
+                                        <input type="number" step="0.1" name="ph" id="ph" required placeholder="4.0 - 9.0" min="0" max="14" aria-describedby="ph-msg">
+                                    </div>
+                                    <div class="validation-message" id="ph-msg"></div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-cloud-rain"></i> Rainfall <span class="label-info">Optimal: 20-350 mm</span></label>
+                                <div class="input-wrapper" data-unit="mm">
+                                    <input type="number" step="0.1" name="rainfall" id="rainfall" required placeholder="20 - 350" min="0" max="1000" aria-describedby="rainfall-msg">
+                                </div>
+                                <div class="validation-message" id="rainfall-msg"></div>
+                            </div>
+                            <div class="btn-group">
+                                <button type="submit" class="btn btn-full" id="predictBtn"><i class="fas fa-magic"></i> Get Crop Recommendation</button>
+                                <a href="/chat" class="btn btn-secondary"><i class="fas fa-comment-dots"></i> Ask Expert</a>
+                            </div>
+                        </form>
+
+                        <!-- Result Box -->
+                        {% if prediction_text %}
+                        <div class="result-box" id="result-area">
+                            <h3><i class="fas fa-check-circle"></i> Recommendation Result</h3>
+                            <div class="crop-name">{{ prediction_text }}</div>
+
+                            {% if prediction_text %}
+                            <div id="cropImageContainer" class="crop-display-container">
+                                <img id="cropImage" 
+                                     src="/static/images/crop/{{ prediction_text.replace('🌾 Recommended Crop: ', '').replace('Error: ', '')|lower }}.jpg"
+                                     alt="{{ prediction_text }}"
+                                     class="crop-image"
+                                     onerror="showFallbackCard()">
+                                <div id="fallbackCard" class="fallback-card" style="display: none;">
+                                    <div class="crop-emoji">🌾</div>
+                                    <h2 class="crop-name">{{ prediction_text.replace('🌾 Recommended Crop: ', '').replace('Error: ', '')|upper }}</h2>
+                                    <p class="optimal-tag">Optimal choice for your soil & climate</p>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if confidence_val is defined %}
+                            <div class="confidence-meter-container">
+                                <div class="confidence-label">
+                                    <span><i class="fas fa-chart-line"></i> AI Confidence Score</span>
+                                    <span class="confidence-value">{{ confidence_text }}</span>
+                                </div>
+                                <div class="confidence-bar-bg">
+                                    {% if confidence_val < 50 %}{% set color_class = 'low' %}
+                                    {% elif confidence_val < 80 %}{% set color_class = 'medium' %}
+                                    {% else %}{% set color_class = 'high' %}{% endif %}
+                                    <div class="confidence-bar-fill {{ color_class }}" style="width: {{ confidence_val }}%;"></div>
+                                </div>
+                                {% if confidence_val < 50 %}<div class="confidence-note low">⚠️ Low confidence. Input values may be outside typical ranges.</div>
+                                {% elif confidence_val < 80 %}<div class="confidence-note">ℹ️ Moderate confidence. Results are likely accurate.</div>
+                                {% else %}<div class="confidence-note high">✅ High confidence! Results are highly reliable.</div>{% endif %}
+                            </div>
+                            {% endif %}
+
+                            {% if top_crops and top_crops|length > 1 %}
+                            <div class="alternative-crops" style="margin-top: 20px; background: rgba(255,255,255,0.5); padding: 15px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.05);">
+                                <h4 style="margin-bottom: 10px; color: var(--primary-start); font-size: 15px;"><i class="fas fa-list-ul"></i> Other Suitable Options</h4>
+                                <div style="display: flex; flex-direction: column; gap: 8px;">
+                                {% for crop in top_crops[1:] %}
+                                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: white; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                                        <span style="font-weight: 500; color: #333;">{{ loop.index + 1 }}. {{ crop.name }}</span>
+                                        <span style="font-size: 13px; font-weight: 600; color: {% if crop.confidence > 50 %}var(--success){% elif crop.confidence > 20 %}var(--warning-start){% else %}var(--gray){% endif %};">{{ crop.confidence }}%</span>
+                                    </div>
+                                {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if input_data %}
+                            <div class="input-summary input-summary-box">
+                                <strong><i class="fas fa-sliders-h"></i> Input Parameters:</strong>
+                                <span>{{ input_data }}</span>
+                            </div>
+                            {% endif %}
+
+                            {% if warnings %}
+                            <div class="result-warnings result-warnings-box">
+                                <h4><i class="fas fa-exclamation-triangle"></i> Important Warnings</h4>
+                                <ul class="ai-results-list">{% for warning in warnings %}<li>{{ warning }}</li>{% endfor %}</ul>
+                            </div>
+                            {% endif %}
+
+                            {% if recommendations %}
+                            <div class="result-recs result-recs-box">
+                                <h4><i class="fas fa-lightbulb"></i> Actionable Advice</h4>
+                                <ul class="ai-results-list">{% for rec in recommendations %}<li>{{ rec }}</li>{% endfor %}</ul>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Sidebar -->
+                <aside class="sidebar">
+                    <div class="sidebar-card">
+                        <div class="sidebar-header"><i class="fas fa-ruler-combined"></i> Optimal Ranges</div>
+                        <div class="sidebar-body">
+                            <ul class="info-list">
+                                <li><strong>Nitrogen (N)</strong> <span class="value">5-140 mg/kg</span></li>
+                                <li><strong>Phosphorus (P)</strong> <span class="value">5-70 mg/kg</span></li>
+                                <li><strong>Potassium (K)</strong> <span class="value">10-210 mg/kg</span></li>
+                                <li><strong>Temperature</strong> <span class="value">8-43 °C</span></li>
+                                <li><strong>Humidity</strong> <span class="value">20-100 %</span></li>
+                                <li><strong>Soil pH</strong> <span class="value">4.0-9.0</span></li>
+                                <li><strong>Rainfall</strong> <span class="value">20-350 mm</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="sidebar-card">
+                        <div class="sidebar-header"><i class="fas fa-link"></i> Quick Resources</div>
+                        <div class="sidebar-body">
+                            <ul class="quick-links">
+                                <li><a href="/chat"><i class="fas fa-robot"></i> AI Farming Assistant</a></li>
+                                <li><a href="/crop-calendar"><i class="fas fa-calendar-alt"></i> Crop Calendar</a></li>
+                                <li><a href="#"><i class="fas fa-book"></i> Best Practices Guide</a></li>
+                                <li><a href="#"><i class="fas fa-hand-holding-usd"></i> Government Schemes</a></li>
+                                <li><a href="#"><i class="fas fa-phone-alt"></i> Contact KVK</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="sidebar-card">
+                        <div class="sidebar-header"><i class="fas fa-headset"></i> Support</div>
+                        <div class="sidebar-body">
+                            <ul class="info-list">
+                                <li><strong>Kisan Call Centre</strong><br><span style="color: var(--accent-start); font-weight: 600; font-size: 16px;">1800-180-1551</span></li>
+                                <li><strong>Emergency Helpline</strong><br><span style="color: var(--danger-start); font-weight: 600;">1551</span></li>
+                                <li><strong>Email Support</strong><br><a href="mailto:support@agriculture.gov.in"><i class="fas fa-envelope"></i> support@agriculture.gov.in</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div>
+                    <h3><i class="fas fa-seedling"></i> About CropAI</h3>
+                    <p>This AI-powered Crop Recommendation System helps farmers make data-driven decisions about crop selection based on soil nutrients and climate conditions. Built with advanced machine learning achieving <strong>99.55% accuracy</strong>.</p>
+                </div>
+                <div>
+                    <h3><i class="fas fa-compass"></i> Navigate</h3>
+                    <ul>
+                        <li><a href="/"><i class="fas fa-chevron-right"></i> Home</a></li>
+                        <li><a href="/chat"><i class="fas fa-chevron-right"></i> AI Assistant</a></li>
+                        <li><a href="/crop-calendar"><i class="fas fa-chevron-right"></i> Crop Calendar</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Farmer Resources</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3><i class="fas fa-address-card"></i> Contact</h3>
+                    <ul>
+                        <li><i class="fas fa-building"></i> Ministry of Agriculture</li>
+                        <li><i class="fas fa-map-marker-alt"></i> Krishna Bhawan, New Delhi</li>
+                        <li><i class="fas fa-phone"></i> Helpline: 1800-180-1551</li>
+                        <li><a href="mailto:support@agriculture.gov.in"><i class="fas fa-envelope"></i> support@agriculture.gov.in</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="container">
+                © 2024 Ministry of Agriculture & Farmers Welfare, Government of India | <a href="#" style="color: var(--accent-end);"><i class="fas fa-shield-alt"></i> Privacy Policy</a> | <a href="#" style="color: var(--accent-end);"><i class="fas fa-file-contract"></i> Terms of Use</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Floating Action Button -->
+    <a href="#cropForm" class="fab" title="Go to Form"><i class="fas fa-arrow-up"></i></a>
+
+    <!-- JavaScript -->
+    <script>
+        // Fallback card for missing crop images
+        function showFallbackCard() {
+            document.getElementById('cropImage').style.display = 'none';
+            document.getElementById('fallbackCard').style.display = 'flex';
+        }
+        const cropImage = document.getElementById('cropImage');
+        if (cropImage) {
+            cropImage.addEventListener('error', showFallbackCard);
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // === Form Validation ===
+            const ranges = {
+                'N': { min: 5, max: 140, name: 'Nitrogen', unit: 'mg/kg' },
+                'P': { min: 5, max: 70, name: 'Phosphorus', unit: 'mg/kg' },
+                'K': { min: 10, max: 210, name: 'Potassium', unit: 'mg/kg' },
+                'temperature': { min: 8, max: 43, name: 'Temperature', unit: '°C' },
+                'humidity': { min: 20, max: 100, name: 'Humidity', unit: '%' },
+                'ph': { min: 4.0, max: 9.0, name: 'Soil pH', unit: 'pH' },
+                'rainfall': { min: 20, max: 350, name: 'Rainfall', unit: 'mm' }
+            };
+
+            Object.keys(ranges).forEach(field => {
+                const input = document.getElementById(field);
+                if (!input) return;
+                let msgBox = document.getElementById(field + '-msg');
+                if (!msgBox) {
+                    msgBox = document.createElement('div');
+                    msgBox.id = field + '-msg';
+                    msgBox.className = 'validation-message';
+                    input.parentNode.appendChild(msgBox);
+                }
+                input.addEventListener('input', function () {
+                    const num = parseFloat(this.value);
+                    if (!this.value || isNaN(num)) {
+                        msgBox.style.display = 'none';
+                        this.classList.remove('valid', 'invalid', 'warning');
+                        return;
+                    }
+                    if (num < ranges[field].min) {
+                        msgBox.className = 'validation-message warning';
+                        msgBox.innerHTML = '<i class="fas fa-exclamation-circle"></i> Low ' + ranges[field].name + ': Below ' + ranges[field].min + ' ' + ranges[field].unit;
+                        msgBox.style.display = 'block';
+                        this.classList.add('warning'); this.classList.remove('valid', 'invalid');
+                    } else if (num > ranges[field].max) {
+                        msgBox.className = 'validation-message error';
+                        msgBox.innerHTML = '<i class="fas fa-exclamation-triangle"></i> High ' + ranges[field].name + ': Above ' + ranges[field].max + ' ' + ranges[field].unit;
+                        msgBox.style.display = 'block';
+                        this.classList.add('invalid'); this.classList.remove('valid', 'warning');
+                    } else {
+                        msgBox.className = 'validation-message success';
+                        msgBox.innerHTML = '<i class="fas fa-check-circle"></i> ' + ranges[field].name + ' is optimal ✓';
+                        msgBox.style.display = 'block';
+                        this.classList.add('valid'); this.classList.remove('invalid', 'warning');
+                    }
+                });
+            });
+
+            // === Loading State ===
+            const form = document.getElementById('cropForm');
+            const btn = document.getElementById('predictBtn');
+            if (form && btn) {
+                form.addEventListener('submit', function () {
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+                    btn.style.opacity = '0.7';
+                });
+            }
+
+            // === Particles Animation ===
+            const particles = document.querySelectorAll('.particle');
+            particles.forEach(p => {
+                p.style.left = Math.random() * 100 + '%';
+                p.style.top = Math.random() * 100 + '%';
+                const s = Math.random() * 4 + 2;
+                p.style.width = s + 'px';
+                p.style.height = s + 'px';
+                p.style.animationDelay = Math.random() * 5 + 's';
+                p.style.opacity = Math.random() * 0.5 + 0.2;
+            });
+
+            // === Background Slideshow ===
+            const slides = document.querySelectorAll('.background-slide');
+            let currentSlide = 0;
+            setInterval(() => {
+                slides[currentSlide].classList.remove('active');
+                currentSlide = (currentSlide + 1) % slides.length;
+                slides[currentSlide].classList.add('active');
+            }, 8000);
+        });
+
+        // === History Persistence ===
+        function saveRecommendation(crop, conf, inputs) {
+            if (!crop || !conf) return;
+            let history = JSON.parse(localStorage.getItem('cropAI_history') || '[]');
+            const isDuplicate = history.some(h => h.crop === crop && h.inputs === inputs);
+            if (!isDuplicate) {
+                history.unshift({ date: new Date().toLocaleString(), crop, conf, inputs });
+                history = history.slice(0, 5);
+                localStorage.setItem('cropAI_history', JSON.stringify(history));
+            }
+            showHistory();
+        }
+
+        function showHistory() {
+            const history = JSON.parse(localStorage.getItem('cropAI_history') || '[]');
+            if (history.length === 0) return;
+            let historySection = document.getElementById('history-section');
+            if (!historySection) {
+                historySection = document.createElement('div');
+                historySection.id = 'history-section';
+                historySection.style.marginTop = '20px';
+                const resultBox = document.querySelector('.result-box');
+                const cardBody = document.querySelector('.card-body');
+                if (resultBox && resultBox.parentNode) {
+                    resultBox.parentNode.insertBefore(historySection, resultBox.nextSibling);
+                } else if (cardBody) {
+                    cardBody.appendChild(historySection);
+                } else { return; }
+            }
+            let html = '<div style="padding:15px;background:#f8f9fa;border-radius:12px;">';
+            html += '<h4 style="margin-bottom:10px;"><i class="fas fa-history"></i> Recent Recommendations</h4>';
+            history.forEach(h => {
+                html += `<div style="padding:10px;background:white;margin:8px 0;border-radius:8px;border-left:4px solid var(--primary-end);"><strong>${h.crop}</strong> (${h.conf})<br><small style="color:var(--gray)">${h.date}</small><br><small>${h.inputs}</small></div>`;
+            });
+            html += `<button onclick="clearHistory()" style="margin-top:10px;padding:8px 16px;background:#e74c3c;color:white;border:none;border-radius:8px;cursor:pointer;"><i class="fas fa-trash"></i> Clear History</button></div>`;
+            historySection.innerHTML = html;
+        }
+
+        function clearHistory() {
+            localStorage.removeItem('cropAI_history');
+            const historySection = document.getElementById('history-section');
+            if (historySection) historySection.innerHTML = '';
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const cropElem = document.querySelector('.crop-name');
+            const confElem = document.querySelector('.confidence-value');
+            const inputsElem = document.querySelector('.input-summary');
+            if (cropElem && confElem && inputsElem && cropElem.textContent.trim()) {
+                saveRecommendation(cropElem.textContent.trim(), confElem.textContent.trim(), inputsElem.textContent.trim());
+            }
+            showHistory();
+        });
+        window.clearHistory = clearHistory;
+
+        // === Service Worker for PWA ===
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/static/sw.js')
+                    .then(reg => console.log('SW registered: ', reg))
+                    .catch(err => console.log('SW failed: ', err));
+            });
+        }
+    </script>
+</body>
+</html>
