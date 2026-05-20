@@ -48,12 +48,12 @@ checks = [
 # ===== MODEL =====
 print(f"\n{Colors.INFO}[2] ML Model{Colors.RESET}")
 
-base_dir = Path(__file__).parent / 'app'
+base_dir = Path(__file__).parent
 model_path = base_dir / 'ml_training' / 'models' / 'crop_model_best.pkl'
 check("Model Path Exists", model_path.exists(), 
       f"Path: {model_path}")
 check("Model Size", model_path.exists() and model_path.stat().st_size > 1024, 
-      f"Size: {model_path.stat().st_size / 1024:.2f} KB" if model_path.exists() else "N/A")
+      f"Size: {model_path.stat().st_size / (1024*1024):.2f} MB" if model_path.exists() else "N/A")
 
 # ===== GROQ CONNECTIVITY =====
 print(f"\n{Colors.INFO}[3] Groq API Health{Colors.RESET}")

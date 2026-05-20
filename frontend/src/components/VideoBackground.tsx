@@ -8,7 +8,7 @@ interface VideoBackgroundProps {
 export default function VideoBackground({ videoUrl, className = '' }: VideoBackgroundProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const fadeRef = useRef<number>(0);
-    const animationFrameRef = useRef<number>();
+    const animationFrameRef = useRef<number | undefined>(undefined);
     const isFadingRef = useRef<boolean>(false);
 
     useEffect(() => {

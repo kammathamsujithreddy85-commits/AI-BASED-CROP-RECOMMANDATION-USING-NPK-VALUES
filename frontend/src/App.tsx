@@ -1,5 +1,6 @@
 import Navigation from './components/Navigation';
 import Hero from './components/Hero';
+import VideoBackground from './components/VideoBackground';
 
 function App() {
   return (
